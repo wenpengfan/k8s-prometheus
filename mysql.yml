@@ -1,0 +1,40 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+ name: mysqlall          #RC名称，全局唯一
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mysqlall
+    spec:
+      containers:
+      - name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: '111111'
+        image: mysql-v2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 3306
+          timeoutSeconds: 30
+        ports:
+        - containerPort: 3306
+          protocol: TCP
+
+      - name: mysql-exporter
+        env:
+        - name: DATA_SOURCE_NAME
+          value: root:111111@(localhost:3306)/
+        image: prom/mysqld-exporter
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9104
+          protocol: TCP
+

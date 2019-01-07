@@ -1,0 +1,58 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    name: prometheus
+  name: prometheus
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccountName: prometheus
+      serviceAccount: prometheus
+      securityContext:
+        runAsUser: 0
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.0.0
+        imagePullPolicy: IfNotPresent
+        command:
+        - "/bin/prometheus"
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--storage.tsdb.path=/prometheus"
+        - "--storage.tsdb.retention=24h"
+        ports:
+        - containerPort: 9090
+          protocol: TCP
+        volumeMounts:
+        - mountPath: "/etc/prometheus"
+          name: prometheus-config
+        - mountPath: "/prometheus"
+          name: data
+      - name: alertmanager
+        image: quay.io/prometheus/alertmanager:v0.14.0
+        #imagePullPolicy: IfNotPresent
+        args:
+          - '--config.file=/etc/alertmanager/config.yml'
+          - '--storage.path=/alertmanager'
+        ports:
+        - name: alertmanager
+          containerPort: 9093
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/alertmanager
+      serviceAccountName: prometheus
+      volumes:
+      - name: prometheus-config
+        configMap:
+          name: prometheus-config
+      - name: data
+        hostPath:
+          path: /prometheus
+      - name: config-volume
+        configMap:
+          name: alertmanager
