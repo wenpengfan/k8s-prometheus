@@ -1,1 +1,2 @@
 # prometheus
+基于k8s环境的promethus监控，同时grafana，altermanager模板也有
