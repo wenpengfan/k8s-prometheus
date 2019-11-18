@@ -85,12 +85,6 @@ data:
           regex: default;kubernetes;https
         - target_label: __address__
           replacement: kubernetes.default.svc:443
-
-      #- job_name: 'mysql_performance'
-      #  scrape_interval: 1m
-      #  static_configs:
-      #  - targets: ['testdbtm.default.svc:9104']
-
       - job_name: 'mysql_performance'
         kubernetes_sd_configs:
         - role: service
@@ -109,26 +103,8 @@ data:
         static_configs:
         - targets: ['mysqlall.default.svc:9104']
     rule_files:
-      - "/etc/prometheus/rules.yml"
+      - "/etc/prometheus/rules/*.yml"
     alerting:
       alertmanagers:
       - static_configs:
-        - targets: ['localhost:9093']
-  rules.yml: |
-    groups:
-    - name: test-rule
-      rules:
-      - alert: NodeMemoryUsage-low
-        expr: (node_memory_MemTotal_bytes - (node_memory_MemFree_bytes + node_memory_Buffers_bytes + node_memory_Cached_bytes)) / node_memory_MemTotal_bytes * 100 > 1
-        for: 1m
-        labels:
-          team: node
-          severity: info
-        annotations:
-          summary: "{{$labels.instance}}: High Memory usage detected"
-          description: "{{$labels.instance}}: Memory usage is above 80% (current value is: {{ $value }}"
-      - alert: go_goroutines_numbers
-        expr: go_goroutines > 1
-        for: 15s
-        annotations:
-          summary: "prometheus的gorotine数据超过40!"
+        - targets: ['alertmanager:9093']

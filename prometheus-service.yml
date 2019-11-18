@@ -9,7 +9,7 @@ spec:
   - name: prometheus
     port: 9090
     targetPort: 9090
-    nodePort: 30001
+    nodePort: 30003
   selector:
     app: prometheus
   type: NodePort

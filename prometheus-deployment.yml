@@ -1,3 +1,4 @@
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -17,7 +18,7 @@ spec:
         runAsUser: 0
       containers:
       - name: prometheus
-        image: prom/prometheus:v2.0.0
+        image: prom/prometheus:v2.2.1
         imagePullPolicy: IfNotPresent
         command:
         - "/bin/prometheus"
@@ -33,26 +34,16 @@ spec:
           name: prometheus-config
         - mountPath: "/prometheus"
           name: data
-      - name: alertmanager
-        image: quay.io/prometheus/alertmanager:v0.14.0
-        #imagePullPolicy: IfNotPresent
-        args:
-          - '--config.file=/etc/alertmanager/config.yml'
-          - '--storage.path=/alertmanager'
-        ports:
-        - name: alertmanager
-          containerPort: 9093
-        volumeMounts:
-        - name: config-volume
-          mountPath: /etc/alertmanager
-      serviceAccountName: prometheus
+        - mountPath: "/etc/prometheus/rules"
+          name: prometheus-rules
+
       volumes:
       - name: prometheus-config
         configMap:
           name: prometheus-config
       - name: data
-        hostPath:
-          path: /prometheus
-      - name: config-volume
+        persistentVolumeClaim:
+          claimName: prometheus-pvc
+      - name: prometheus-rules
         configMap:
-          name: alertmanager
+          name: prometheus-rules
